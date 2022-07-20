@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:intl/intl.dart';
 import 'package:my_app/models/Nutrient.dart';
+import 'package:translator/translator.dart';
 
 class Recipe {
   String? label = "";
@@ -12,12 +15,13 @@ class Recipe {
   String date = DateFormat.yMMMd().format(DateTime.now());
   List<String> ingredients = <String>[];
   List<Nutrients> nutrient = <Nutrients>[];
+  final translator = GoogleTranslator();
 
   Recipe() {}
 
-  void addingredients(List<dynamic> a) {
+  void addingredients(List<dynamic> a) async {
     for (var i in a) {
-      ingredients.add(i);
+      ingredients.add(await funTranslator(i.toString()));
     }
   }
 
@@ -48,5 +52,10 @@ class Recipe {
       recipe.addNutrient(a.label, a.quantity.toDouble(), a.unit);
     }
     return recipe;
+  }
+
+  Future<String> funTranslator(String a) async {
+    var translation = await translator.translate(a, to: 'es');
+    return translation.text;
   }
 }

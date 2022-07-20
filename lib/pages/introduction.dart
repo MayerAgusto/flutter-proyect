@@ -12,22 +12,23 @@ class onBoardingScreen extends StatelessWidget {
     return [
       PageViewModel(
           image: Image.asset("asserts/images/image_01.png"),
-          title: "Search for recipes",
+          title: "Buscar recetas",
           body:
-              "This application you can search for the recipes you want with the ingredients you have",
+              "Esta aplicación puedes buscar las recetas que quieras con los ingredientes que tienes",
           decoration: pageDecoration),
       PageViewModel(
           image: Image.asset("asserts/images/image_02.png"),
-          title: "Save recipes",
-          body: "Store the recipes you want",
-          footer: Text("Pedro", style: TextStyle(color: Colors.black)),
+          title: "Guardar recetas",
+          body: "Guarda las recetas que quieras",
+          footer:
+              Text("Solo con un click", style: TextStyle(color: Colors.black)),
           decoration: pageDecoration),
       PageViewModel(
           image: Image.asset("asserts/images/image_03.png"),
-          title: "View stadistics",
+          title: "Ver estadísticas",
           body:
-              "Know your eating behavior and you can see the nutrients consumed",
-          footer: Text("Pedro", style: TextStyle(color: Colors.black)),
+              "Conoce tu comportamiento alimentario y podrás ver los nutrientes consumidos",
+          footer: Text("A comenzar !!", style: TextStyle(color: Colors.black)),
           decoration: pageDecoration)
     ];
   }
@@ -43,7 +44,7 @@ class onBoardingScreen extends StatelessWidget {
             size: const Size.square(10.0),
             color: Colors.amber,
             activeColor: Colors.amber[300]),
-        done: Text("Done", style: TextStyle(color: Colors.amber[800])),
+        done: Text("Hecho", style: TextStyle(color: Colors.amber[800])),
         onDone: () {
           Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => SearchPage(),

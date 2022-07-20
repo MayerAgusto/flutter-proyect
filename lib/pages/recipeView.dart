@@ -6,6 +6,7 @@ import 'package:my_app/models/Recipe.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:tab_indicator_styler/tab_indicator_styler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class RecipeView extends StatefulWidget {
   final Recipe recipe;
@@ -18,12 +19,33 @@ class RecipeView extends StatefulWidget {
 class _RecipeViewState extends State<RecipeView> {
   CollectionReference recipes =
       FirebaseFirestore.instance.collection("recipes");
+
+  InterstitialAd? interstitialAd;
+  bool isLoaded = false;
   openUrl(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
       throw "Could not launch URL";
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    InterstitialAd.load(
+      adUnitId: "ca-app-pub-3940256099942544/8691691433",
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(onAdLoaded: (ad) {
+        setState(() {
+          isLoaded = true;
+          this.interstitialAd = ad;
+        });
+        print("Anuncio cargado");
+      }, onAdFailedToLoad: (error) {
+        print("Error de mostrar anuncio");
+      }),
+    );
   }
 
   Widget build(BuildContext context) {
@@ -155,7 +177,7 @@ class _RecipeViewState extends State<RecipeView> {
                   SizedBox(
                     width: 10,
                   ),
-                  Text(r.servicing.toInt().toString() + " Servings",
+                  Text(r.servicing.toInt().toString() + " Porciones",
                       style: TextStyle(color: Colors.grey))
                 ],
               ),
@@ -185,9 +207,9 @@ class _RecipeViewState extends State<RecipeView> {
                           fontSize: 12,
                         ),
                         tabs: [
-                          Tab(text: "Ingredients".toLowerCase()),
-                          Tab(text: "Preparation".toLowerCase()),
-                          Tab(text: "Nutrients".toLowerCase()),
+                          Tab(text: "Ingredientes".toLowerCase()),
+                          Tab(text: "Preparacion".toLowerCase()),
+                          Tab(text: "Nutrientes".toLowerCase()),
                         ]),
                     Divider(
                       color: Colors.black.withOpacity(0.3),
@@ -205,9 +227,21 @@ class _RecipeViewState extends State<RecipeView> {
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
-                                      openUrl(r.url!);
+                                      if (isLoaded) {
+                                        interstitialAd!
+                                                .fullScreenContentCallback =
+                                            FullScreenContentCallback(
+                                                onAdDismissedFullScreenContent:
+                                                    (ad) {
+                                          openUrl(r.url!);
+                                          ad.dispose();
+                                        });
+                                        interstitialAd!.show();
+                                        didChangeDependencies();
+                                        isLoaded = false;
+                                      }
                                     },
-                                    child: Text('Let´s begin'),
+                                    child: Text('Emepezemos'),
                                     style: ElevatedButton.styleFrom(
                                         padding: EdgeInsets.all(10),
                                         textStyle: TextStyle(
@@ -290,7 +324,7 @@ class Table extends StatelessWidget {
   }
 
   Widget buildDataTable() {
-    final columns = ["Type", "Quantity", "Tag"];
+    final columns = ["Tipo", "Cantidad", "Valor"];
     return DataTable(columns: getColumns(columns), rows: getRows(nutrients));
   }
 

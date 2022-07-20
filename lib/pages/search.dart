@@ -27,6 +27,7 @@ class SearchPage extends StatefulWidget {
 class _SearchListState extends State<SearchPage> {
   @override
   final myController = TextEditingController(text: "");
+  final caloriesController = TextEditingController(text: "");
   var items = <String>[];
 
   @override
@@ -43,7 +44,7 @@ class _SearchListState extends State<SearchPage> {
               Image(image: AssetImage("asserts/images/food.png")),
               SizedBox(height: 13),
               Text(
-                "What to cook now ?",
+                "Que cocinamos hoy ?",
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -68,7 +69,7 @@ class _SearchListState extends State<SearchPage> {
                             color: Colors.amber[900],
                             size: 30,
                           ),
-                          labelText: "Ingredients",
+                          labelText: "Ingredientes",
                           labelStyle: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -92,6 +93,25 @@ class _SearchListState extends State<SearchPage> {
                       ))
                 ],
               ),
+              TextFormField(
+                controller: caloriesController,
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
+                decoration: InputDecoration(
+                    border: InputBorder.none,
+                    prefixIcon: Icon(
+                      Icons.numbers,
+                      color: Colors.amber[900],
+                      size: 30,
+                    ),
+                    labelText: "Calorias",
+                    labelStyle: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.amber[600])),
+              ),
               SizedBox(height: 10),
               SizedBox(
                 height: 55,
@@ -104,12 +124,13 @@ class _SearchListState extends State<SearchPage> {
                       items.add(myController.text);
                     }
                     Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => MyMenu(items.join("+")),
+                      builder: (context) => MyMenu(
+                          items.join("+"), caloriesController.text.toString()),
                     ));
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  child: Text("Search", style: TextStyle(fontSize: 20)),
+                  child: Text("Buscar", style: TextStyle(fontSize: 20)),
                 ),
               ),
               SizedBox(height: 10),

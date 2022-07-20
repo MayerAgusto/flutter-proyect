@@ -6,7 +6,8 @@ import 'package:my_app/pages/recipeView.dart';
 
 class RecipeList extends StatefulWidget {
   final String cadena;
-  const RecipeList(this.cadena, {Key? key}) : super(key: key);
+  final String calorias;
+  const RecipeList(this.cadena, this.calorias, {Key? key}) : super(key: key);
   @override
   _RecipeListState createState() => _RecipeListState();
 }
@@ -19,7 +20,9 @@ class _RecipeListState extends State<RecipeList> {
     var url = Uri.https('api.edamam.com', '/search', {
       'q': widget.cadena,
       'app_id': '07cac499',
-      'app_key': 'e098d7e361cfb253c9c317f6d35369e8'
+      'app_key': 'e098d7e361cfb253c9c317f6d35369e8',
+      'calories':
+          widget.calorias + "-" + (int.parse(widget.calorias) + 100).toString(),
     });
     var response = await http.get(url);
 
@@ -28,6 +31,7 @@ class _RecipeListState extends State<RecipeList> {
       for (var item in jsonData['hits']) {
         Recipe a = new Recipe();
         a.label = item["recipe"]["label"];
+        a.label = await a.funTranslator(a.label.toString());
         a.image = item["recipe"]["image"];
         a.addingredients((item["recipe"]["ingredientLines"] as List));
         a.url = item["recipe"]["url"];

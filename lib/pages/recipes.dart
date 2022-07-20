@@ -7,7 +7,8 @@ import 'package:my_app/pages/recipeList.dart';
 
 class MyMenu extends StatefulWidget {
   final String cadena;
-  const MyMenu(this.cadena, {Key? key}) : super(key: key);
+  final String calorias;
+  const MyMenu(this.cadena, this.calorias, {Key? key}) : super(key: key);
   @override
   _ExampleState createState() => _ExampleState();
 }
@@ -20,7 +21,7 @@ class _ExampleState extends State<MyMenu> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _widgetOptions = <Widget>[
-      RecipeList(widget.cadena),
+      RecipeList(widget.cadena, widget.calorias),
       Calendar(),
       HomePageSars(),
     ];
@@ -57,17 +58,17 @@ class _ExampleState extends State<MyMenu> {
                 GButton(
                     icon: LineIcons.utensils,
                     iconColor: Colors.amber[800],
-                    text: 'Home',
+                    text: 'Inicio',
                     textStyle: TextStyle(color: Colors.amber[400])),
                 GButton(
                     icon: LineIcons.calendar,
                     iconColor: Colors.amber[800],
-                    text: 'Likes',
+                    text: 'Recetas',
                     textStyle: TextStyle(color: Colors.amber[400])),
                 GButton(
                     icon: LineIcons.barChart,
                     iconColor: Colors.amber[800],
-                    text: 'Search',
+                    text: 'Buscar',
                     textStyle: TextStyle(color: Colors.amber[400]))
               ],
               selectedIndex: _selectedIndex,
