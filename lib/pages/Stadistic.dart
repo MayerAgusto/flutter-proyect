@@ -1,9 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:my_app/models/Recipe.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
 class HomePageSars extends StatelessWidget {
+  List<Recipe> list = [];
+
+  CollectionReference _collectionReference =
+      FirebaseFirestore.instance.collection("recipes");
+
+  Future<void> getData() async {
+    QuerySnapshot querySnapshot = await _collectionReference.get();
+    final datas = querySnapshot.docs.map((e) => e.data()).toList();
+    for (var item in datas) {
+      print("data $item");
+      list.add(Recipe.fromJson(item as Map<String, dynamic>));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    getData();
     return Scaffold(
       body: Center(
         child: HomePageView(),
