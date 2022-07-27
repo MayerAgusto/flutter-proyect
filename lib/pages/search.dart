@@ -5,7 +5,7 @@ import 'package:flutter_speech/flutter_speech.dart';
 import 'package:translator/translator.dart';
 
 const languages = const [
-  const Language('English', 'es_ES'),
+  const Language('Español', 'es_ES'),
   const Language('Francais', 'fr_FR'),
   const Language('Pусский', 'ru_RU'),
   const Language('Italiano', 'it_IT'),

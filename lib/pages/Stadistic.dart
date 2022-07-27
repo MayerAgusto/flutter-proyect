@@ -1,120 +1,268 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:my_app/models/Recipe.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:tab_indicator_styler/tab_indicator_styler.dart';
 
-class HomePageSars extends StatelessWidget {
-  List<Recipe> list = [];
+class HomePageSars extends StatefulWidget {
+  const HomePageSars({Key? key}) : super(key: key);
+  @override
+  _HomePageSarsState createState() => _HomePageSarsState();
+}
 
-  CollectionReference _collectionReference =
-      FirebaseFirestore.instance.collection("recipes");
+class _HomePageSarsState extends State<HomePageSars> {
+  List<GDPData>? _chartData;
+  List<GDPData>? _donuthChartData;
+  List<Recipe>? _data;
+  late List<ExpenseData> _linearData;
+  TooltipBehavior? _tooltipBehavior;
 
-  Future<void> getData() async {
+  @override
+  void initState() {
+    _linearData = [];
+    // TODO: implement initState
+    getFromFirebase().then((data) {
+      setState(() {
+        _chartData = gethartData(data);
+        _linearData = getChartLineData(data);
+        _donuthChartData = getMonthData(data);
+      });
+    });
+    _tooltipBehavior = TooltipBehavior(enable: true);
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+        child: Scaffold(
+      body: Padding(
+        padding: EdgeInsets.all(10),
+        child: DefaultTabController(
+            length: 3,
+            initialIndex: 0,
+            child: Column(
+              children: [
+                TabBar(
+                    labelColor: Colors.black,
+                    indicator: DotIndicator(
+                      color: Colors.amber,
+                      distanceFromCenter: 16,
+                      radius: 3,
+                      paintingStyle: PaintingStyle.fill,
+                    ),
+                    unselectedLabelColor: Colors.black.withOpacity(0.3),
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    tabs: [
+                      Tab(text: "Calorias".toLowerCase()),
+                      Tab(text: "Proteinas".toLowerCase()),
+                      Tab(text: "Mensual".toLowerCase()),
+                    ]),
+                Divider(
+                  color: Colors.black.withOpacity(0.3),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _circleBar(),
+                      _chartBar(),
+                      getMoth(),
+                    ],
+                  ),
+                )
+              ],
+            )),
+      ),
+    ));
+  }
+
+  Widget _chartBar() {
+    return SfCartesianChart(
+      title: ChartTitle(text: "Consumo diario en (g)"),
+      legend: Legend(isVisible: true),
+      tooltipBehavior: _tooltipBehavior,
+      series: <ChartSeries>[
+        StackedBarSeries<ExpenseData, String>(
+            dataSource: _linearData,
+            xValueMapper: (ExpenseData exp, _) => exp.date,
+            yValueMapper: (ExpenseData exp, _) => exp.p,
+            name: "Proteinas",
+            markerSettings: MarkerSettings(isVisible: true)),
+        StackedBarSeries<ExpenseData, String>(
+            dataSource: _linearData,
+            xValueMapper: (ExpenseData exp, _) => exp.date,
+            yValueMapper: (ExpenseData exp, _) => exp.c,
+            name: "Carbohidratos",
+            markerSettings: MarkerSettings(isVisible: true)),
+        StackedBarSeries<ExpenseData, String>(
+            dataSource: _linearData,
+            xValueMapper: (ExpenseData exp, _) => exp.date,
+            yValueMapper: (ExpenseData exp, _) => exp.g_sat,
+            name: "G. Saturadas",
+            markerSettings: MarkerSettings(isVisible: true)),
+        StackedBarSeries<ExpenseData, String>(
+            dataSource: _linearData,
+            xValueMapper: (ExpenseData exp, _) => exp.date,
+            yValueMapper: (ExpenseData exp, _) => exp.g_trans,
+            name: "G. Trans",
+            markerSettings: MarkerSettings(isVisible: true))
+      ],
+      primaryXAxis: CategoryAxis(),
+    );
+  }
+
+  Widget getMoth() {
+    return SfCircularChart(
+      title: ChartTitle(text: "Calorias consumidas por mes (cal)"),
+      legend:
+          Legend(isVisible: true, overflowMode: LegendItemOverflowMode.wrap),
+      tooltipBehavior: _tooltipBehavior,
+      series: <CircularSeries>[
+        DoughnutSeries<GDPData, String>(
+          dataSource: _donuthChartData,
+          xValueMapper: (GDPData data, _) => data.cadena,
+          yValueMapper: (GDPData data, _) => data.gpd,
+          dataLabelSettings: DataLabelSettings(isVisible: true),
+          enableTooltip: true,
+        )
+      ],
+    );
+  }
+
+  Widget _circleBar() {
+    return SfCircularChart(
+      title: ChartTitle(text: "Calorias consumidas por dia en (cal)"),
+      legend:
+          Legend(isVisible: true, overflowMode: LegendItemOverflowMode.wrap),
+      tooltipBehavior: _tooltipBehavior,
+      series: <CircularSeries>[
+        RadialBarSeries<GDPData, String>(
+          dataSource: _chartData,
+          xValueMapper: (GDPData data, _) => data.cadena,
+          yValueMapper: (GDPData data, _) => data.gpd,
+          dataLabelSettings: DataLabelSettings(isVisible: true),
+          enableTooltip: true,
+          maximumValue: 10000,
+        )
+      ],
+    );
+  }
+
+  Future<List<Recipe>> getFromFirebase() async {
+    CollectionReference _collectionReference =
+        FirebaseFirestore.instance.collection("recipes");
+
     QuerySnapshot querySnapshot = await _collectionReference.get();
     final datas = querySnapshot.docs.map((e) => e.data()).toList();
+    List<Recipe> list = [];
     for (var item in datas) {
-      print("data $item");
       list.add(Recipe.fromJson(item as Map<String, dynamic>));
     }
+    return list;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    getData();
-    return Scaffold(
-      body: Center(
-        child: HomePageView(),
-      ),
-    );
+  List<GDPData> gethartData(List<Recipe> list) {
+    var loadMap = new Map<String, int>();
+    final List<GDPData> chartData = [];
+    for (var food in list) {
+      var key =
+          loadMap.keys.firstWhere((k) => k == food.date, orElse: () => "Empty");
+      if (key == "Empty") {
+        loadMap[food.date] = food.calories!.toInt();
+      } else {
+        loadMap[key] = loadMap[key]! + food.calories!.toInt();
+      }
+    }
+    for (var key in loadMap.keys) {
+      chartData.add(GDPData(key, loadMap[key]!.toInt()));
+    }
+    return chartData;
   }
-}
 
-class HomePageView extends StatelessWidget {
-  final List<DeveloperSeries> data = [
-    DeveloperSeries(
-      year: "14-May",
-      developers: 400,
-      barColor: charts.ColorUtil.fromDartColor(Colors.green),
-    ),
-    DeveloperSeries(
-      year: "15-May",
-      developers: 630,
-      barColor: charts.ColorUtil.fromDartColor(Colors.amber),
-    ),
-    DeveloperSeries(
-      year: "16-May",
-      developers: 220,
-      barColor: charts.ColorUtil.fromDartColor(Colors.red),
-    ),
-    DeveloperSeries(
-      year: "17-May",
-      developers: 600,
-      barColor: charts.ColorUtil.fromDartColor(Colors.blue),
-    ),
-    DeveloperSeries(
-      year: "18-May",
-      developers: 700,
-      barColor:
-          charts.ColorUtil.fromDartColor(Color.fromARGB(255, 44, 207, 199)),
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: DeveloperChart(data)),
-    );
+  List<GDPData> getMonthData(List<Recipe> list) {
+    var loadMap = new Map<String, int>();
+    final List<GDPData> chartData = [];
+    for (var food in list) {
+      var key = loadMap.keys.firstWhere((k) => k == food.date.substring(0, 3),
+          orElse: () => "Empty");
+      if (key == "Empty") {
+        loadMap[food.date.substring(0, 3)] = food.calories!.toInt();
+      } else {
+        loadMap[key] = loadMap[key]! + food.calories!.toInt();
+      }
+    }
+    for (var key in loadMap.keys) {
+      chartData.add(GDPData(key, loadMap[key]!.toInt()));
+    }
+    return chartData;
   }
-}
 
-class DeveloperChart extends StatelessWidget {
-  final List<DeveloperSeries> data;
-
-  DeveloperChart(@required this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    List<charts.Series<DeveloperSeries, String>> series = [
-      charts.Series(
-          id: "developers",
-          data: data,
-          domainFn: (DeveloperSeries series, _) => series.year.toString(),
-          measureFn: (DeveloperSeries series, _) => series.developers,
-          colorFn: (DeveloperSeries series, _) => series.barColor!)
-    ];
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: Column(
-          children: <Widget>[
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "Total carbohydrates",
-              style: TextStyle(fontSize: 24),
-            ),
-            Expanded(
-              child: charts.BarChart(series, animate: true),
-            ),
-            Expanded(
-              child: (charts.PieChart(series, animate: true)),
-            )
-          ],
-        ),
-      ),
-    );
+  List<ExpenseData> getChartLineData(List<Recipe> list) {
+    final List<ExpenseData> chartData = [];
+    List<ExpenseData> saved_chartData = [];
+    var loadMap = new Map<String, Data>();
+    for (var food in list) {
+      var c, p, g_sat, g_trans = 0;
+      for (var n in food.nutrient) {
+        if (n.label == "Carbs") {
+          c = n.quantity;
+        }
+        if (n.label == "Protein") {
+          p = n.quantity;
+        }
+        if (n.label == "Saturated") {
+          g_sat = n.quantity;
+        }
+        if (n.label == "Trans") {
+          g_trans = n.quantity;
+        }
+      }
+      saved_chartData.add(ExpenseData(food.date, p, c, g_sat, g_trans));
+    }
+    for (var item in saved_chartData) {
+      var key =
+          loadMap.keys.firstWhere((k) => k == item.date, orElse: () => "Empty");
+      if (key == "Empty") {
+        loadMap[item.date] = Data(item.p, item.c, item.g_sat, item.g_trans);
+      } else {
+        loadMap[item.date] = Data(
+            item.p + loadMap[item.date]!.p,
+            item.c + loadMap[item.date]!.c,
+            item.g_sat + loadMap[item.date]!.g_sat,
+            item.g_trans + loadMap[item.date]!.g_trans);
+      }
+    }
+    for (var items in loadMap.keys) {
+      chartData.add(ExpenseData(items.substring(0, 6), loadMap[items]!.p,
+          loadMap[items]!.c, loadMap[items]!.g_sat, loadMap[items]!.g_trans));
+    }
+    return chartData;
   }
 }
 
-class DeveloperSeries {
-  final String? year;
-  final int? developers;
-  final charts.Color? barColor;
+class Data {
+  Data(this.p, this.c, this.g_sat, this.g_trans);
+  num p = 0;
+  num c = 0;
+  num g_sat = 0;
+  num g_trans = 0;
+}
 
-  DeveloperSeries(
-      {@required this.year,
-      @required this.developers,
-      @required this.barColor});
+class ExpenseData {
+  ExpenseData(this.date, this.p, this.c, this.g_sat, this.g_trans);
+  final String date;
+  final num p;
+  final num c;
+  final num g_sat;
+  final num g_trans;
+}
+
+class GDPData {
+  GDPData(this.cadena, this.gpd);
+  final String cadena;
+  final int gpd;
 }

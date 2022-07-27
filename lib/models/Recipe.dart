@@ -42,6 +42,7 @@ class Recipe {
     recipe.totalWeight = allData['totalWeight'];
     recipe.totalTime = allData['totalTime'];
     recipe.servicing = allData['servicing'];
+    recipe.date = allData['date'];
     recipe.addingredients(allData['ingredients']);
     final nutrientes = allData['nutrient'] as List;
     for (int n = 0; n < nutrientes.length; n++) {

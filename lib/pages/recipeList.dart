@@ -14,6 +14,7 @@ class RecipeList extends StatefulWidget {
 
 class _RecipeListState extends State<RecipeList> {
   Future<List<Recipe>>? _listRecipes;
+  var loading_data = false;
   Future<List<Recipe>> getRecipes() async {
     List<Recipe> recipes = [];
 
@@ -102,7 +103,12 @@ class _RecipeListState extends State<RecipeList> {
   @override
   void initState() {
     super.initState();
-    _listRecipes = getRecipes();
+    if (loading_data == false) {
+      _listRecipes = getRecipes();
+      setState(() {
+        loading_data = true;
+      });
+    }
   }
 
   @override
