@@ -20,13 +20,16 @@ class _Calendar extends State<Calendar> {
 
   Stream<List<Recipe>> readRecipes() => FirebaseFirestore.instance
       .collection("recipes")
-      .where("date", isEqualTo: DateFormat.yMMMd().format(DateTime.now()))
+      .where("date", isEqualTo: DateFormat.yMMMd().format(_selectedTime))
       .snapshots()
       .map((snapshot) =>
           snapshot.docs.map((e) => Recipe.fromJson(e.data())).toList());
 
   @override
   Widget build(BuildContext context) {
+    DateTime _initialStartDate = new DateTime(_selectedTime.year,
+        _selectedTime.month, _selectedTime.day - (_selectedTime.weekday - 1));
+
     return Scaffold(
         body: Column(
       children: [
@@ -43,7 +46,7 @@ class _Calendar extends State<Calendar> {
         Container(
           margin: const EdgeInsets.only(left: 10),
           child: DatePicker(
-            DateTime.now(),
+            _initialStartDate,
             height: 100,
             width: 80,
             initialSelectedDate: DateTime.now(),
@@ -104,11 +107,11 @@ class _Calendar extends State<Calendar> {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
-                fontSize: 25,
+                fontSize: 20,
               ),
             ),
             SizedBox(
-              height: 10,
+              height: 5,
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -159,7 +162,7 @@ class _Calendar extends State<Calendar> {
                     fontWeight: FontWeight.bold,
                   )),
               Text(
-                "Today",
+                "Hoy",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -167,7 +170,6 @@ class _Calendar extends State<Calendar> {
               )
             ]),
           ),
-          MyButton(label: "View", onTap: () => {}),
         ],
       ),
     );
